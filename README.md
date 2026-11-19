@@ -347,4 +347,5 @@ cp .env.example .env.local
 - **궁합보드 연동**: 보드에서 1위 참가자와의 "심화 케미 리포트(1코인)" CTA → `/report/gunghap` 로 주인·참가자 생년월일이 쿼리로 전달 ✅
 - `/my`: 보유 코인·연 유료 리포트·저장한 사주·궁합 보드 ✅ · `/terms`·`/privacy` ✅
 - 320px·390px 가로 스크롤 없음 ✅
-- 스크린샷: `downloads/saju-v2-home.png` · `downloads/saju-v2-charge.png`
+- 남은 상태: 테스트 결제 2건(각 5코인, `mode=test`, 실제 승인·청구 없음), 잠금해제 5건, **현재 지갑 4코인**
+- 스크린샷: `downloads/saju-v2-home.png` · `downloads/saju-v2-charge.png` (모바일 390px 전체: `saju-v2-home-full.png`, `saju-v2-report-preview.png`, `saju-v2-today.png`, `saju-v2-catcher.png`)
