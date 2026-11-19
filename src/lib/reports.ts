@@ -699,7 +699,7 @@ export function buildGunghapReport(
       heading: `1. 두 사람의 기본 케미 — ${level}`,
       paragraphs: [
         `${aName} 님의 일간 ${a.dayGan}과 ${bName} 님의 일간 ${b.dayGan}의 관계는 ${compat.ganText}`,
-        `${aName} 님의 일지 ${a.dayZhi}${josaWa(a.dayZhi)} ${bName} 님의 일지 ${b.dayZhi}${josaEun(b.dayZhi)} ${compat.zhiText}`,
+        `${aName} 님의 일지 ${a.dayZhi}${josaWa(a.dayZhi)} ${bName} 님의 일지 ${b.dayZhi}${josaEun(b.dayZhi)} ${compat.zhiText}.`,
         compat.complement >= 60
           ? `서로 부족한 기운을 채워 주는 비율이 ${compat.complement}%로 높아요. 함께 있으면 각자 혼자일 때보다 결정이 빨라지고, 생활의 리듬도 안정돼요.`
           : `서로 채워 주는 기운은 ${compat.complement}% 정도예요. 비슷한 부분이 많아 편하지만, 부족한 부분은 둘이 함께 의식적으로 메워야 해요.`,
@@ -716,7 +716,9 @@ export function buildGunghapReport(
               ? "이 두 기질이 서로의 빈 곳을 정확히 눌러 줘서, 말하지 않아도 통하는 순간이 자주 생겨요."
               : "기질이 다르게 보여도, 상대의 방식이 '나와 다른 것'이지 '틀린 것'이 아니라는 걸 알면 훨씬 편해져요."
         }`,
-        `${aName} 님이 ${a.fortune.love.score >= b.fortune.love.score ? "애정 표현이 더 많은 쪽" : "표현이 적은 쪽"}이에요. 이 차이를 미리 알고 있으면 서운함이 줄어요.`,
+        a.fortune.love.score === b.fortune.love.score
+          ? `두 사람의 애정 표현 온도가 비슷해요. 서운함이 생기면 그대로 말해 주는 쪽이 오래 갑니다.`
+          : `${aName} 님이 ${a.fortune.love.score > b.fortune.love.score ? "애정 표현이 더 많은 쪽" : "표현이 적은 쪽"}이에요. 이 차이를 미리 알고 있으면 서운함이 줄어요.`,
       ],
       bullets: [
         `${aName} · ${a.ilgan.oneLine}`,
@@ -726,7 +728,7 @@ export function buildGunghapReport(
     {
       heading: "3. 부딪히는 지점",
       paragraphs: [
-        compat.advice[0] ?? "서로의 속도가 다를 때 오해가 생겨요.",
+        `${aName} 님과 ${bName} 님의 ${a.strength}·${b.strength} 조합은 ${a.strength === b.strength ? "힘의 방향이 비슷해 주도권 다툼이 생기면 오래 끌 수 있어요." : "에너지가 오가는 방식이 달라, 한쪽이 지칠 때 다른 쪽은 왜 힘든지 모를 수 있어요."} 갈등은 감정이 아니라 속도 차이에서 시작돼요.`,
         `${a.strength}인 ${aName} 님과 ${b.strength}인 ${bName} 님은 ${a.strength === b.strength ? "비슷한 힘의 균형이라 주도권 다툼이 생기면 오래 끌 수 있어요." : "에너지의 방향이 달라, 한쪽이 지칠 때 다른 쪽은 왜 힘든지 모를 수 있어요."}`,
       ],
       bullets: [
