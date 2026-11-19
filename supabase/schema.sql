@@ -257,3 +257,14 @@ create policy "board_entries_delete_own_or_owner"
       where b.id = board_entries.board_id and b.user_id = auth.uid()
     )
   );
+
+-- ==========================================================================
+--  API 롤 권한 (Data API: anon / authenticated)
+--  테이블 권한이 없으면 PostgREST 가 42501 permission denied 로 막힙니다.
+--  RLS 정책은 그대로 적용되므로 행 단위 접근 제어는 변하지 않습니다.
+-- ==========================================================================
+grant usage on schema public to anon, authenticated;
+grant all on all tables in schema public to anon, authenticated;
+grant all on all sequences in schema public to anon, authenticated;
+alter default privileges in schema public grant all on tables to anon, authenticated;
+alter default privileges in schema public grant all on sequences to anon, authenticated;

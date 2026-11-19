@@ -111,11 +111,21 @@ cp .env.example .env.local
 ### 카카오 디벨로퍼스 체크리스트
 
 - [ ] 애플리케이션 → 플랫폼 → Web 도메인 등록(`https://내도메인`, `http://localhost:3000`)
-- [ ] 카카오 로그인 → 활성화 ON
-- [ ] Redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`
-- [ ] 동의항목: 닉네임(필수). 이메일까지 쓰려면 `account_email` 동의항목 신청 후
-      `KakaoLoginButton` 의 `scopes: "account_email"` 주석 해제
-- [ ] Client Secret 사용함 + Supabase Kakao Provider 에 입력
+- [ ] 카카오 로그인 → 활성화 ON, **OpenID Connect 사용 설정 ON**
+- [ ] Redirect URI 두 개 등록
+      - `https://<project-ref>.supabase.co/auth/v1/callback` (Supabase 기본 OAuth용, 보관)
+      - `https://내도메인/api/auth/kakao/callback` (**이 앱이 실제로 쓰는 OIDC 콜백**)
+- [ ] 동의항목: 닉네임(필수), 프로필 사진(선택)
+- [ ] Client Secret 사용함 → Vercel 환경변수 `KAKAO_CLIENT_SECRET`, REST API 키 → `KAKAO_REST_API_KEY`
+
+> **왜 Supabase 기본 Kakao 프로바이더가 아니라 OIDC 인가 코드 방식인가**
+> Supabase 의 Kakao 프로바이더는 `account_email` 스코프를 항상 함께 요청합니다.
+> 이메일 동의항목은 «비즈 앱» 인증이 있어야 열리므로 일반 앱에서는
+> 카카오가 `KOE205(잘못된 요청)` 로 인가 요청 자체를 거절합니다.
+> 그래서 이 앱은 카카오에 `openid profile_nickname profile_image` 만 요청해 id_token 을 받고,
+> 서버(`/api/auth/kakao/callback`)에서 `supabase.auth.signInWithIdToken({ provider: "kakao" })`
+> 으로 세션을 만듭니다. Supabase Kakao 프로바이더는 켜 둔 상태여야 하며
+> (`Allow users without an email` ON), 이메일 없이 가입됩니다.
 
 ---
 
@@ -214,9 +224,14 @@ cp .env.example .env.local
   - 정적 HTML에 인트로 히어로·폰트·타이틀이 포함(SEO) ✅, `/robots.txt`·`/sitemap.xml`·`/privacy` 응답 ✅
   - `/auth/callback`(코드 없음) → `/login?error=not_configured` 안내로 이동 ✅
 - `supabase/schema.sql` 는 PostgreSQL 파서(pglast 8.8)로 51개 구문 파싱 검증 ✅ (문법 오류 없음)
-- Supabase 연동 경로(로그인 콜백·DB 저장)는 실제 프로젝트 키가 없어 실행 검증하지 못했습니다.
-  키를 넣은 뒤 아래 순서로 확인하세요: `/login` → 카카오 로그인 → 결과에서 "내 사주에 저장" → `/my` 목록 →
-  `/board` 에서 "보드 저장" → 다른 브라우저에서 초대 링크 열기.
+- **실서버 검증 (2026-11-19, Supabase + 카카오 + Vercel 배포 완료)**
+  - 배포 URL: https://saju-app-two-psi.vercel.app
+  - 카카오 OIDC 로그인 → `auth.users` 에 유저 생성 ✅ (문무아, provider=kakao, 이메일 없음)
+  - 결과 화면 “내 사주에 저장” → `saju_readings` 1행 생성 ✅ (RLS 적용, title `무아 님의 사주`)
+  - 궁합 보드 “보드 저장하고 친구 초대하기” → `compatibility_boards` + `board_entries` 생성 ✅
+  - 초기 1회 이슈: 테이블에는 RLS 정책만 있고 `anon/authenticated` 롤의 **테이블 권한(GRANT)** 이 없어
+    `42501 permission denied` 가 났고, 아래 GRANT 문을 실행해 해결했습니다(스키마 파일에도 추가됨).
+    `grant usage on schema public to anon, authenticated; grant all on all tables in schema public to anon, authenticated;`
 
 ---
 
