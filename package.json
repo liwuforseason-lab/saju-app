@@ -1,0 +1,29 @@
+{
+  "name": "saju-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "운세 한 스푼 — Next.js + Supabase 사주 풀이 앱",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.1",
+    "next": "15.5.29",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.9",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=20.9"
+  }
+}
