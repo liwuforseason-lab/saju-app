@@ -53,6 +53,10 @@ function StatsStrip() {
   );
 }
 
+/**
+ * 예시 후기 — 실제 후기가 쌓이면 이 배열을 교체해 주세요.
+ * (지금은 서비스 오픈 전이라 실제 이용자 후기가 아닙니다.)
+ */
 const REVIEWS = [
   {
     name: "김*아",
@@ -111,7 +115,7 @@ function ReviewRoller() {
     <section className="kid-section" aria-label="이용자 후기">
       <div className="kid-section__head">
         <h2>먼저 본 사람들의 한마디</h2>
-        <p>실제로 남겨 주신 후기를 바탕으로 정리했어요</p>
+        <p>오픈 준비 중에 모은 예시 후기예요 · 실제 후기가 쌓이면 바뀝니다</p>
       </div>
       <div className="review-roll">
         <div className="review-roll__track">
