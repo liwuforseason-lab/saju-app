@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import SiteFooter from "@/components/SiteFooter";
+import BottomTabs from "@/components/kid/BottomTabs";
+import CoinBadge from "@/components/kid/CoinBadge";
+import { PRODUCTS, productOf, won } from "@/lib/coins";
 import {
   RELATION_LABEL,
   type SajuProfileRow,
@@ -14,7 +17,7 @@ import { getCurrentUser, getSupabaseServerClient } from "@/lib/supabase/server";
 import { deleteProfile, deleteReading } from "./actions";
 
 export const metadata: Metadata = {
-  title: "마이페이지",
+  title: "내 보관함",
   description: "저장한 사주와 풀이를 다시 보고 관리해요.",
 };
 
@@ -92,7 +95,7 @@ export default async function MyPage() {
   if (!user) redirect("/login?next=/my");
 
   const supabase = await getSupabaseServerClient();
-  const [{ data: profiles }, { data: readings }, { data: boards }] =
+  const [{ data: profiles }, { data: readings }, { data: boards }, { data: wallet }, { data: unlocked }] =
     await Promise.all([
       supabase!
         .from("saju_profiles")
@@ -108,7 +111,25 @@ export default async function MyPage() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10),
+      supabase!
+        .from("coin_wallets")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase!
+        .from("unlocked_reports")
+        .select("report_type, target_key, coins_spent, created_at")
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
+
+  const balance = (wallet as { balance?: number } | null)?.balance ?? 0;
+  const unlockedRows = (unlocked ?? []) as {
+    report_type: string;
+    target_key: string;
+    coins_spent: number;
+    created_at: string;
+  }[];
 
   const profileRows = (profiles ?? []) as SajuProfileRow[];
   const readingRows = (readings ?? []) as SajuReadingRow[];
@@ -131,7 +152,8 @@ export default async function MyPage() {
             <span className="brand__text">운세 한 스푼</span>
           </Link>
           <div className="topbar__right">
-            <Link className="auth-chip" href="/">
+            <CoinBadge />
+            <Link className="auth-chip" href="/saju">
               사주 보기
             </Link>
             <form action="/auth/signout" method="post">
@@ -143,12 +165,69 @@ export default async function MyPage() {
         </header>
 
         <div className="page-head">
-          <h1>내 사주 보관함</h1>
+          <h1>내 보관함</h1>
           <p>
             저장한 풀이는 언제든 다시 열 수 있어요. 필요 없는 기록은 바로 지울 수
             있습니다.
           </p>
         </div>
+
+        <section className="mypage-section">
+          <div className="mypage-section__head">
+            <h2>내 코인</h2>
+            <span>{balance}개</span>
+          </div>
+          <div className="my-wallet">
+            <p className="my-wallet__value">🪙 <b>{balance}</b> 코인</p>
+            <Link className="btn btn--primary btn--sm" href="/charge">
+              코인 충전
+            </Link>
+          </div>
+        </section>
+
+        <section className="mypage-section">
+          <div className="mypage-section__head">
+            <h2>연 유료 리포트</h2>
+            <span>{unlockedRows.length}개</span>
+          </div>
+          {unlockedRows.length ? (
+            <ul className="saved-list">
+              {unlockedRows.map((row) => {
+                const product = productOf(row.report_type);
+                return (
+                  <li className="saved-item" key={`${row.report_type}-${row.target_key}`}>
+                    <div className="saved-item__top">
+                      <span className="saved-item__title">
+                        {product ? product.title : row.report_type}
+                      </span>
+                      <span className="saved-item__date">{formatDate(row.created_at)}</span>
+                    </div>
+                    <span className="saved-item__meta">
+                      {row.coins_spent}코인 사용 · 다시 열어도 추가 결제 없음
+                    </span>
+                    <div className="saved-item__actions">
+                      <Link
+                        href={
+                          row.report_type === "saju"
+                            ? "/saju"
+                            : `/report/${row.report_type}`
+                        }
+                      >
+                        다시 보기 →
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="empty-state">
+              아직 연 리포트가 없어요.
+              <br />
+              <Link href="/">{PRODUCTS.length}가지 리포트 보러 가기 →</Link>
+            </div>
+          )}
+        </section>
 
         <section className="mypage-section">
           <div className="mypage-section__head">
@@ -182,7 +261,7 @@ export default async function MyPage() {
             <div className="empty-state">
               아직 저장한 프로필이 없어요.
               <br />
-              <Link href="/">사주를 보고 “내 사주에 저장”을 눌러 보세요.</Link>
+              <Link href="/saju">사주를 보고 “내 사주에 저장”을 눌러 보세요.</Link>
             </div>
           )}
         </section>
@@ -236,7 +315,7 @@ export default async function MyPage() {
                       </p>
                     ) : null}
                     <div className="saved-item__actions">
-                      <Link href={`/?${query}`}>다시 보기 →</Link>
+                      <Link href={`/saju?${query}`}>다시 보기 →</Link>
                       <form action={deleteReading}>
                         <input type="hidden" name="id" value={reading.id} />
                         <button className="btn--danger" type="submit">
@@ -252,7 +331,7 @@ export default async function MyPage() {
             <div className="empty-state">
               아직 저장한 풀이가 없어요.
               <br />
-              <Link href="/">사주를 보러 가기 →</Link>
+              <Link href="/saju">사주를 보러 가기 →</Link>
             </div>
           )}
         </section>
@@ -309,6 +388,7 @@ export default async function MyPage() {
 
         <SiteFooter />
       </main>
+      <BottomTabs />
     </>
   );
 }

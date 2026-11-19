@@ -1,5 +1,5 @@
-import SajuApp from "@/components/saju/SajuApp";
+import HomeScreen from "@/components/kid/HomeScreen";
 
 export default function HomePage() {
-  return <SajuApp />;
+  return <HomeScreen />;
 }

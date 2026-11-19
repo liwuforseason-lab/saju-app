@@ -1,11 +1,11 @@
-# 운세 한 스푼 — Next.js + Supabase 사주 앱
+# 운세 한 스푼 — Next.js + Supabase 사주 앱 (코인 결제 · 사주아이 스타일)
 
 무아 님의 부업용 사주 사이트를 **Next.js(App Router) + Supabase(카카오 로그인·Postgres) + Vercel 배포 가능 구조**로 옮긴 프로젝트입니다.
 기존 `/workspace/saju-site/` 의 디자인·마스코트·검증된 만세력 엔진을 그대로 가져와, 로그인·저장·궁합 줄세우기 기능을 더했습니다.
 
 - 프런트: Next.js 15 (App Router) · React 19 · TypeScript · 모바일 퍼스트(최대 480px 카드 레이아웃)
 - 백엔드: Supabase Auth(카카오 OAuth) + Postgres(RLS) · Route Handler API
-- 수익화: 쿠팡 파트너스(AF6829761) 개운템 · 애드센스/카카오 애드핏 슬롯 · 결과 공유
+- 수익화: **코인 충전 · 유료 리포트(토스페이먼츠)** · 쿠팡 파트너스(AF6829761) 개운템 · 애드센스/카카오 애드핏 슬롯
 
 ---
 
@@ -241,3 +241,92 @@ cp .env.example .env.local
 - 보드 공유용 OG 이미지(동적 `opengraph-image`)로 카카오톡 미리보기 강화
 - 결과 저장 시 프로필 재사용(같은 생년월일 프로필 자동 매칭)
 - 애드센스 승인 후 광고 슬롯 위치 A/B 테스트
+
+
+---
+
+## 11. 사주아이 스타일 홈 + 코인 결제 (2026-11-19 추가)
+
+`saju-kid.com`(사주아이)의 **무료 운세 뽑기 → 990원(1코인) 유료 리포트 → 코인 충전** 구조를 그대로 옮겨 왔습니다.
+
+### 11-1. 화면 구성
+
+| 경로 | 내용 |
+| --- | --- |
+| `/` | **홈**: 포춘캐처 히어로(오늘의 무료 운세 뽑기) · 상단 로그인/코인 배지 · 유료 상품 6종 그리드 · 누적 이용자 카운터 · 후기 롤링 · FAQ · 하단 고정 탭바 · 사업자 푸터 |
+| `/saju` | 기존 만세력 무료 풀이(사주팔자·오행·오늘의 운세·개운템). 결과 하단에 **심화 사주 해설(1코인) 무료 미리보기 + 잠금해제** 카드 |
+| `/report/[type]` | 유료 리포트: `newyear`(2027 신년운세) · `love`(연애운 2코인) · `gunghap`(궁합 심화 1코인) · `daewoon`(대운 1코인) · `yeonwoon`(연운 1코인). 입력 → **무료 미리보기** → 코인으로 잠금해제 → 전체 해설 |
+| `/today` | 오늘의 운세(무료): 일진·점수·행운 색/숫자/시간 + 오늘의 한마디 |
+| `/charge` | 코인 충전: 1·3·5·10코인 패키지 → 토스페이먼츠 결제창(또는 테스트 결제) |
+| `/charge/success` · `/charge/fail` | 결제 승인 처리 · 실패 안내 |
+| `/my` | 보관함: 코인 잔액 · 연 유료 리포트 · 저장한 사주/궁합 보드 |
+| `/terms` | 이용약관(코인·환불 정책 포함) · `/privacy` 기존 개인정보처리방침 |
+
+하단 탭바: `홈 · 궁합보드 · 오늘운세 · 보관함`.
+
+### 11-2. 유료 상품 가격
+
+| 상품 | 코인 | 가격 | 비고 |
+| --- | --- | --- | --- |
+| 990원 사주 (심화 해설 8장) | 1 | 990원 | 무료 미리보기 + 잠금해제 |
+| 2027 신년운세 (7장 + 12개월 흐름) | 1 | 990원 | NEW |
+| 연애운 (6장: 이상형·썸·결혼·재회) | 2 | 1,980원 | 정가 3코인 → 2코인 할인 |
+| 990원 궁합 (심화 케미 6장) | 1 | 990원 | 보드와 같은 만세력 엔진 사용 |
+| 990원 대운 (8개 대운) | 1 | 990원 | |
+| 990원 연운 (월별 흐름) | 1 | 990원 | |
+
+코인 패키지: 1코인 990원 · 3코인 2,700원 · **5코인 4,400원(추천)** · 10코인 8,500원.
+금액·코인 수는 `src/lib/coins.ts` 한 곳에 있고, **서버(결제·잠금해제 API)가 이 값으로 다시 검증**합니다.
+
+### 11-3. Supabase 스키마 추가
+
+`supabase/migrations/002_coins_payments.sql` (또는 `supabase/schema.sql` 뒤쪽) 을 SQL Editor 에서 실행하세요.
+
+- `coin_wallets(user_id, balance)` — 사용자당 1행
+- `coin_orders(id, user_id, order_id, package_id, amount_krw, coins, status, payment_key, mode, ...)`
+- `unlocked_reports(id, user_id, report_type, target_key, coins_spent, ...)` — 같은 리포트는 1회만 과금
+- RLS: 세 테이블 모두 **본인 행만 SELECT**. 쓰기는 아래 함수/서버만 가능.
+- 함수
+  - `coin_unlock(report_type, target_key, coins)` — 로그인 사용자용. 잔액 확인 후 **원자적으로 차감 + 잠금해제 기록**
+  - `coin_credit(user, coins)` · `finalize_coin_order(order_id, payment_key, paid)` — **service_role 전용**(결제 승인 서버만 호출)
+  - `site_stats()` — 홈 카운터용 집계값(읽기 전용, 누구나)
+- `anon/authenticated` 에는 테이블 SELECT 권한만, `service_role` 에는 전체 권한 + 기본 권한(default privileges)까지 부여합니다.
+
+> `SUPABASE_SERVICE_ROLE_KEY` 가 없으면 주문 생성/승인이 503으로 막히고, 무료 기능과 미리보기는 그대로 동작합니다.
+> 키는 Vercel Environment Variables 에 **서버 전용**으로 넣으세요(절대 `NEXT_PUBLIC_` 금지).
+
+### 11-4. 토스페이먼츠 실결제 전환 (3단계)
+
+1. **토스페이먼츠 가입** → 개발자센터 > 내 상점 > API 키
+   - 사업자 없이도 **테스트 키**(`test_ck_…`, `test_sk_…`)를 바로 발급받을 수 있어요. 실제 돈은 나가지 않습니다.
+2. Vercel > Settings > Environment Variables 에 추가
+   - `NEXT_PUBLIC_TOSS_CLIENT_KEY` = `test_ck_…` (또는 실키 `live_ck_…`)
+   - `TOSS_SECRET_KEY` = `test_sk_…` (또는 실키 `live_sk_…`)
+3. 재배포하면 `/charge` 가 자동으로 **토스 결제창(카드·카카오페이 등)** 으로 전환됩니다.
+   - 결제창 → `successUrl: /charge/success` → 서버 `/api/payments/confirm` 이 토스 승인 API 호출 → `finalize_coin_order` 로 코인 적립.
+   - 실결제(정산)를 위해서는 토스페이먼츠 **가맹점 심사**(사업자등록증 + 통신판매업신고)가 필요합니다.
+
+**키가 없을 때(현재 배포 상태)**: `테스트 결제 모드`로 동작합니다.
+`/charge` → 주문 생성(pending) → `/api/payments/confirm` 이 시뮬레이션 승인 → 코인 적립 → 잠금해제까지 전 과정을 실제와 같은 API 로 확인할 수 있습니다.
+
+### 11-5. 결제·잠금해제 API
+
+| 메서드 | 경로 | 설명 |
+| --- | --- | --- |
+| GET | `/api/wallet` | 내 코인 잔액 + 잠금해제한 리포트 목록 |
+| POST | `/api/payments/create` | `{ packageId }` → 주문 생성(pending), 결제창 파라미터 반환 |
+| POST | `/api/payments/confirm` | `{ orderId, paymentKey, amount }` → 금액·소유자 검증 → 토스 승인(또는 테스트) → 코인 적립 |
+| POST | `/api/unlocks` | `{ reportType, targetKey }` → 서버 카탈로그 코인으로 `coin_unlock` |
+| GET | `/api/stats` | 누적 이용자/풀이 수(시드 + DB 집계) |
+
+보안 포인트
+- 코인을 올리는 경로는 **서비스 롤이 필요한 `finalize_coin_order` 하나뿐**입니다. 사용자가 직접 호출해 코인을 얻을 수 없습니다.
+- 잠금해제는 `coin_unlock` 안에서 잔액 확인·차감·기록이 한 트랜잭션으로 처리되고, 같은 리포트는 재과금되지 않습니다.
+- 결제 금액은 주문에 저장된 값과 클라이언트가 보낸 값을 비교해 다르면 승인하지 않습니다.
+
+### 11-6. 사업자 정보 · 후기 문구
+
+- 푸터/이용약관의 사업자 정보는 `src/lib/env.ts` 의 `BUSINESS_INFO` 기본값(리우네계절 사진관)이며,
+  `NEXT_PUBLIC_BUSINESS_*` 환경변수로 실제 값(사업자등록번호·통신판매업 신고번호)을 넣을 수 있습니다.
+- 홈의 이용자 후기(`src/components/kid/HomeScreen.tsx` 의 `REVIEWS`)는 **예시 문구**입니다.
+  실제 후기가 쌓이면 교체해 주세요. 누적 카운터의 시드값(`STATS_SEED_*`)도 `src/lib/env.ts` 에서 조정합니다.

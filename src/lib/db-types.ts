@@ -40,3 +40,38 @@ export const RELATION_LABEL: Record<ProfileRelation, string> = {
   friend: "지인",
   other: "기타",
 };
+
+/* ------------------------------------------------------------------ 결제·코인 */
+/** supabase/migrations/002_coins_payments.sql 대응 */
+
+export interface CoinWalletRow {
+  user_id: string;
+  balance: number;
+  updated_at: string;
+}
+
+export type CoinOrderStatus = "pending" | "paid" | "failed" | "canceled";
+
+export interface CoinOrderRow {
+  id: string;
+  user_id: string;
+  order_id: string;
+  package_id: string;
+  amount_krw: number;
+  coins: number;
+  status: CoinOrderStatus;
+  payment_key: string | null;
+  mode: "test" | "live";
+  fail_reason: string | null;
+  created_at: string;
+  paid_at: string | null;
+}
+
+export interface UnlockedReportRow {
+  id: string;
+  user_id: string;
+  report_type: string;
+  target_key: string;
+  coins_spent: number;
+  created_at: string;
+}

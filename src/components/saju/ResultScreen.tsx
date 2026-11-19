@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import AdSlot from "@/components/ads/AdSlot";
 import SiteFooter from "@/components/SiteFooter";
+import BottomTabs from "@/components/kid/BottomTabs";
 import { dateSummary } from "@/lib/form";
 import type { SajuEngine, SajuResult } from "@/lib/saju/types";
 import PillarsCard from "./result/PillarsCard";
@@ -11,6 +12,7 @@ import IlganCard from "./result/IlganCard";
 import FortuneCard from "./result/FortuneCard";
 import YearsCard from "./result/YearsCard";
 import TodayCard from "./result/TodayCard";
+import DeepReportCard from "./result/DeepReportCard";
 import ItemsCard from "./result/ItemsCard";
 import GunghapCard from "./result/GunghapCard";
 import BoardCta from "./result/BoardCta";
@@ -113,6 +115,9 @@ export default function ResultScreen({ engine, result, onRestart }: Props) {
       <IlganCard engine={engine} result={result} />
       <FortuneCard result={result} />
       <YearsCard result={result} />
+
+      <DeepReportCard engine={engine} result={result} />
+
       <TodayCard result={result} />
       <ItemsCard engine={engine} result={result} />
       <GunghapCard engine={engine} result={result} />
@@ -137,6 +142,7 @@ export default function ResultScreen({ engine, result, onRestart }: Props) {
       </div>
 
       <SiteFooter />
+      <BottomTabs />
     </section>
   );
 }

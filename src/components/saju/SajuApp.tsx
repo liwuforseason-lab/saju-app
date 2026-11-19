@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AuthChip from "@/components/auth/AuthChip";
+import CoinBadge from "@/components/kid/CoinBadge";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
 import FormScreen from "@/components/saju/FormScreen";
 import IntroScreen from "@/components/saju/IntroScreen";
@@ -114,7 +115,7 @@ function SajuFlow() {
         <span className="ambient__star" style={{ "--x": "8%", "--y": "84%", "--s": "3px", "--d": "2.6s" } as React.CSSProperties} />
       </div>
 
-      <main className="app" id="app">
+      <main className="app app--with-tabs" id="app">
         <header className="topbar">
           <button
             className="brand"
@@ -129,6 +130,7 @@ function SajuFlow() {
           </button>
           <div className="topbar__right">
             <span className="topbar__date">{dateLabel}</span>
+            <CoinBadge />
             <AuthChip />
           </div>
         </header>
