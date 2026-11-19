@@ -66,6 +66,7 @@ export default function ReportScreen({ type }: Props) {
   const [busyPreview, setBusyPreview] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [justUnlocked, setJustUnlocked] = useState(false);
+  const autoRan = useRef(false);
 
   useEffect(() => {
     void import("@/lib/saju").then((module) => setEngine(module.Saju));
@@ -156,6 +157,15 @@ export default function ReportScreen({ type }: Props) {
       setBusyPreview(false);
     }
   }, [birth, engine, name, partnerBirth, partnerName, type]);
+
+  /** 궁합 보드처럼 ?y=… 로 들어온 경우엔 바로 미리보기를 계산합니다. */
+  useEffect(() => {
+    if (autoRan.current || !engine) return;
+    const params = new URLSearchParams(search?.toString() ?? "");
+    if (!params.get("y")) return;
+    autoRan.current = true;
+    void compute();
+  }, [compute, engine, search]);
 
   const handleUnlock = useCallback(async () => {
     setMessage(null);

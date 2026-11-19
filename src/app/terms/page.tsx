@@ -82,7 +82,7 @@ export default function TermsPage() {
 
         <h2>제9조 (문의)</h2>
         <p>
-          서비스 이용 문의: {BUSINESS_INFO.contact}
+          서비스 이용 문의 · {BUSINESS_INFO.contact}
           <br />
           사업자: {BUSINESS_INFO.name} · 대표 {BUSINESS_INFO.owner} · {BUSINESS_INFO.number}
           <br />

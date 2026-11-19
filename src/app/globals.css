@@ -3520,3 +3520,7 @@ html {
   color: var(--kid-ink-soft);
   padding: 8px 0 6px;
 }
+
+.page-shell--with-tabs {
+  padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+}

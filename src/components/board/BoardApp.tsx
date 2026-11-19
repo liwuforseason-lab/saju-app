@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdSlot from "@/components/ads/AdSlot";
 import AuthChip from "@/components/auth/AuthChip";
+import BottomTabs from "@/components/kid/BottomTabs";
+import CoinBadge from "@/components/kid/CoinBadge";
 import { useAuth } from "@/components/auth/useAuth";
 import SiteFooter from "@/components/SiteFooter";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
@@ -564,7 +566,7 @@ function BoardScreen() {
         <span className="ambient__glow ambient__glow--b" />
       </div>
 
-      <main className="page-shell">
+      <main className="page-shell page-shell--with-tabs">
         <header className="topbar">
           <Link className="brand" href="/">
             <span className="brand__mark" aria-hidden="true">
@@ -573,6 +575,7 @@ function BoardScreen() {
             <span className="brand__text">운세 한 스푼</span>
           </Link>
           <div className="topbar__right">
+            <CoinBadge />
             <AuthChip />
           </div>
         </header>
@@ -835,6 +838,7 @@ function BoardScreen() {
 
         <SiteFooter />
       </main>
+      <BottomTabs />
     </>
   );
 }
