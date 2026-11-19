@@ -67,6 +67,7 @@ export default function ReportScreen({ type }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [justUnlocked, setJustUnlocked] = useState(false);
   const autoRan = useRef(false);
+  const [paramsReady, setParamsReady] = useState(false);
 
   useEffect(() => {
     void import("@/lib/saju").then((module) => setEngine(module.Saju));
@@ -90,6 +91,8 @@ export default function ReportScreen({ type }: Props) {
       if (saved?.name) setName(saved.name);
     } catch {
       /* 저장된 값이 없으면 기본값을 씁니다. */
+    } finally {
+      setParamsReady(true);
     }
   }, [search]);
 
@@ -158,14 +161,14 @@ export default function ReportScreen({ type }: Props) {
     }
   }, [birth, engine, name, partnerBirth, partnerName, type]);
 
-  /** 궁합 보드처럼 ?y=… 로 들어온 경우엔 바로 미리보기를 계산합니다. */
+  /** 궁합 보드처럼 ?y=… 로 들어온 경우엔 입력값이 반영된 뒤 바로 미리보기를 계산합니다. */
   useEffect(() => {
-    if (autoRan.current || !engine) return;
+    if (!paramsReady || autoRan.current || !engine) return;
     const params = new URLSearchParams(search?.toString() ?? "");
     if (!params.get("y")) return;
     autoRan.current = true;
     void compute();
-  }, [compute, engine, search]);
+  }, [compute, engine, paramsReady, search]);
 
   const handleUnlock = useCallback(async () => {
     setMessage(null);
