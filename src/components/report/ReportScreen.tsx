@@ -80,6 +80,7 @@ export default function ReportScreen({ type }: Props) {
       setBirth(readBirth(params));
       setPartnerName((params.get("bn") ?? "").slice(0, 12));
       setPartnerBirth({ ...readBirth(params, "b"), year: Number(params.get("by")) || 1997 });
+      setParamsReady(true);
       return;
     }
     // 주소에 정보가 없으면 지난번에 넣은 생년월일을 그대로 씁니다(다시 열 때 편하게).
