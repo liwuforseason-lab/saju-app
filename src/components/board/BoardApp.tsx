@@ -238,6 +238,30 @@ function BoardScreen() {
 
   const ranked = useMemo(() => sortByScore(people), [people]);
 
+  /** 1위와의 심화 케미 리포트로 넘길 쿼리 (유료 1코인) */
+  const deepReportHref = useMemo(() => {
+    if (!owner || ranked.length === 0) return null;
+    const top = ranked[0];
+    const q = new URLSearchParams();
+    q.set("n", owner.name || "나");
+    q.set("g", owner.gender);
+    q.set("cal", owner.calendar);
+    if (owner.calendar === "lunar" && owner.leap) q.set("leap", "1");
+    q.set("y", String(owner.year));
+    q.set("m", String(owner.month));
+    q.set("d", String(owner.day));
+    if (owner.timeIndex >= 0) q.set("t", String(owner.timeIndex));
+    q.set("bn", top.nickname);
+    q.set("bg", top.birth.gender);
+    q.set("bcal", top.birth.calendar);
+    if (top.birth.calendar === "lunar" && top.birth.leap) q.set("bleap", "1");
+    q.set("by", String(top.birth.year));
+    q.set("bm", String(top.birth.month));
+    q.set("bd", String(top.birth.day));
+    if (top.birth.timeIndex >= 0) q.set("bt", String(top.birth.timeIndex));
+    return `/report/gunghap?${q.toString()}`;
+  }, [owner, ranked]);
+
   /** 저장 전(로컬) 보드는 이 화면을 연 사람이 주인입니다. */
   const viewerIsOwner = boardId ? isOwner : true;
 
@@ -787,6 +811,23 @@ function BoardScreen() {
                 canDeletePerson={(person) => !person.serverId || Boolean(user)}
               />
             </section>
+
+            {deepReportHref ? (
+              <section className="kid-section" style={{ marginTop: 18 }}>
+                <div className="kid-section__head">
+                  <h2>심화 케미 리포트 · 1코인</h2>
+                  <p>1위 {ranked[0].nickname} 님과의 관계를 6장으로 풀어 드려요</p>
+                </div>
+                <Link className="kid-wide-link" href={deepReportHref} prefetch={false}>
+                  <span className="kid-wide-link__emoji" aria-hidden="true">💞</span>
+                  <span>
+                    <b>{ranked[0].nickname} 님과 심화 궁합 보기</b>
+                    <small>부딪히는 지점 · 오래 가는 법 · 함께할 때의 흐름</small>
+                  </span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </section>
+            ) : null}
 
             <AdSlot variant="result-bottom" />
           </>

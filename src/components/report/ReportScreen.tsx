@@ -384,7 +384,7 @@ export default function ReportScreen({ type }: Props) {
                   {doc.lockedTitles.map((title, index) => (
                     <li key={title}>
                       <span className="locked__num">{index + 1}</span>
-                      {title}
+                      {title.replace(/^\d+\.\s*/, "")}
                       <span className="locked__dots" aria-hidden="true" />
                       🔒
                     </li>

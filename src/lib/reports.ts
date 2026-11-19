@@ -98,6 +98,17 @@ function seedOf(result: SajuResult): number {
   return hash;
 }
 
+/** 받침 유무로 조사를 고릅니다 (진→은, 인→은, 오→는, 토→와, 목→이). */
+function hasBatchim(word: string): boolean {
+  const ch = word.trim().slice(-1);
+  const code = ch.charCodeAt(0);
+  if (!Number.isFinite(code) || code < 0xac00 || code > 0xd7a3) return false;
+  return (code - 0xac00) % 28 !== 0;
+}
+const josaEun = (word: string) => (hasBatchim(word) ? "은" : "는");
+const josaIga = (word: string) => (hasBatchim(word) ? "이" : "가");
+const josaWa = (word: string) => (hasBatchim(word) ? "과" : "와");
+
 function pick<T>(list: T[], seed: number, offset = 0): T {
   return list[(seed + offset) % list.length];
 }
@@ -230,7 +241,7 @@ export function buildSajuReport(
         result.fortune.work.text,
         `${o.strongest}(${engine.ELEM_INFO[o.strongest].hanja}) 기운이 강한 사람은 ${
           engine.ELEM_INFO[o.strongest].keyword
-        }가 살아 있는 일에서 성과가 나요. 반대로 ${lackGroup}(${GROUP_SHORT[lackGroup]}) 에너지가 약해서, 그 영역을 대신 채워 주는 동료나 도구를 곁에 두면 훨씬 수월해져요.`,
+        } 기운이 살아 있는 일에서 성과가 나요. 반대로 ${lackGroup}(${GROUP_SHORT[lackGroup]}) 에너지가 약해서, 그 영역을 대신 채워 주는 동료나 도구를 곁에 두면 훨씬 수월해져요.`,
       ],
       bullets: jobBuckets.map((job) => `추천 분야 · ${job}`),
     },
@@ -238,7 +249,7 @@ export function buildSajuReport(
       heading: "5. 사랑과 인간관계",
       paragraphs: [
         result.fortune.love.text,
-        `일지 ${result.dayZhi}(${result.dayZhiHanja})는 배우자 자리예요. 여기에 ${result.pillars.day.zhiElem} 기운이 앉아 있어, ${
+        `일지 ${result.dayZhi}(${result.dayZhiHanja})${josaEun(result.dayZhi)} 배우자 자리예요. 여기에 ${result.pillars.day.zhiElem} 기운이 앉아 있어, ${
           result.pillars.day.zhiElem === "목"
             ? "함께 자라나는 관계를 원해요. 상대의 성장을 응원할 때 내 사랑도 커져요."
             : result.pillars.day.zhiElem === "화"
@@ -552,7 +563,6 @@ export function buildLoveReport(
     {
       heading: "1. 나의 연애 스타일",
       paragraphs: [
-        result.ilgan.love,
         `${result.fortune.love.text}`,
         `사주에 ${weakElem} 기운이 약해서 ${
           weakElem === "목"
@@ -574,7 +584,7 @@ export function buildLoveReport(
     },
     {
       heading: "2. 이상형과 잘 맞는 사람",
-      paragraphs: [ideal, `관성·재성이 ${gwan}개로 ${gwan >= 3 ? "인연의 기회가 여러 번 오는 편이에요. 다만 선택이 어려울 수 있으니 '나를 편하게 하는 사람' 기준 하나만 잡으세요." : "인연이 드문 편은 아니지만 한 번 마음을 열면 오래 가요."}`],
+      paragraphs: [ideal, `관성·재성이 ${gwan}개로 ${gwan >= 3 ? "사람을 만나는 자리가 잦은 편이에요. 다만 고르는 눈이 높아질 수 있으니 '나를 편하게 하는 사람' 기준 하나만 잡으세요." : "인연이 드문 편은 아니지만 한 번 마음을 열면 오래 가요."}`],
       bullets: [
         `잘 맞는 일간 기운 · ${engine.ELEMS.filter((elem) => elem !== o.strongest).slice(0, 2).join(", ")}`,
         `피하면 좋은 유형 · ${pick(["말로만 약속하는 사람", "감정을 회피하는 사람", "경쟁심이 지나친 사람"], seed, 3)}`,
@@ -593,7 +603,7 @@ export function buildLoveReport(
     {
       heading: "4. 결혼운 · 오래 가는 관계",
       paragraphs: [
-        `배우자 자리인 일지 ${result.dayZhi}(${result.dayZhiHanja})가 ${dayZhiElem} 기운이에요. ${
+        `배우자 자리인 일지 ${result.dayZhi}(${result.dayZhiHanja})${josaIga(result.dayZhi)} ${dayZhiElem} 기운이에요. ${
           dayZhiElem === "목"
             ? "함께 자라나는 결혼이 잘 맞아요. 서로의 목표를 응원하는 사이."
             : dayZhiElem === "화"
@@ -689,7 +699,7 @@ export function buildGunghapReport(
       heading: `1. 두 사람의 기본 케미 — ${level}`,
       paragraphs: [
         `${aName} 님의 일간 ${a.dayGan}과 ${bName} 님의 일간 ${b.dayGan}의 관계는 ${compat.ganText}`,
-        `${aName} 님의 일지 ${a.dayZhi}과 ${bName} 님의 일지 ${b.dayZhi}는 ${compat.zhiText}`,
+        `${aName} 님의 일지 ${a.dayZhi}${josaWa(a.dayZhi)} ${bName} 님의 일지 ${b.dayZhi}${josaEun(b.dayZhi)} ${compat.zhiText}`,
         compat.complement >= 60
           ? `서로 부족한 기운을 채워 주는 비율이 ${compat.complement}%로 높아요. 함께 있으면 각자 혼자일 때보다 결정이 빨라지고, 생활의 리듬도 안정돼요.`
           : `서로 채워 주는 기운은 ${compat.complement}% 정도예요. 비슷한 부분이 많아 편하지만, 부족한 부분은 둘이 함께 의식적으로 메워야 해요.`,
@@ -700,9 +710,11 @@ export function buildGunghapReport(
       heading: "2. 마음이 통하는 지점",
       paragraphs: [
         `${aName} 님은 ${a.ilgan.keyword.join("·")}의 기질, ${bName} 님은 ${b.ilgan.keyword.join("·")}의 기질이에요. ${
-          compat.score >= 72
-            ? "이 두 기질이 서로의 빈 곳을 정확히 눌러 줘서, 말하지 않아도 통하는 순간이 자주 생겨요."
-            : "기질이 다르게 보여도, 상대의 방식이 '나와 다른 것'이지 '틀린 것'이 아니라는 걸 알면 훨씬 편해져요."
+          a.dayGan === b.dayGan
+            ? "일간이 같아 보는 눈과 반응 속도가 비슷해요. 설명하지 않아도 통하는 대신, 같은 곳에서 같이 지치기 쉬워요."
+            : compat.score >= 72
+              ? "이 두 기질이 서로의 빈 곳을 정확히 눌러 줘서, 말하지 않아도 통하는 순간이 자주 생겨요."
+              : "기질이 다르게 보여도, 상대의 방식이 '나와 다른 것'이지 '틀린 것'이 아니라는 걸 알면 훨씬 편해져요."
         }`,
         `${aName} 님이 ${a.fortune.love.score >= b.fortune.love.score ? "애정 표현이 더 많은 쪽" : "표현이 적은 쪽"}이에요. 이 차이를 미리 알고 있으면 서운함이 줄어요.`,
       ],
@@ -738,7 +750,7 @@ export function buildGunghapReport(
     {
       heading: "5. 함께할 때의 흐름",
       paragraphs: [
-        `두 사람의 기운을 합치면 ${a.ohaeng.strongest}과 ${b.ohaeng.strongest}이 만나요. ${
+        `두 사람의 기운을 합치면 ${a.ohaeng.strongest}${josaWa(a.ohaeng.strongest)} ${b.ohaeng.strongest}${josaIga(b.ohaeng.strongest)} 만나요. ${
           a.ohaeng.strongest === b.ohaeng.strongest
             ? "같은 기운이 겹쳐 강점은 커지지만, 그 부분에서 부딪히면 크게 부딪혀요."
             : "서로 다른 기운이 보완되어, 한쪽이 흔들릴 때 다른 쪽이 중심을 잡아 줄 수 있어요."
@@ -775,7 +787,7 @@ export function buildGunghapReport(
     ],
     previewParagraphs: [
       `${compat.ganText}`,
-      `${compat.zhiText} 심화 리포트에는 갈등 포인트와 오래 가는 법이 담겨 있어요.`,
+      `${compat.zhiText}. 심화 리포트에는 갈등 포인트와 오래 가는 법이 담겨 있어요.`,
     ],
     lockedTitles: sections.map((section) => section.heading),
     sections,
@@ -865,18 +877,25 @@ export function buildDaewoonReport(
     ],
   });
 
+  const currentAge = new Date().getFullYear() - result.solar.year + 1;
+  const currentIndex = Math.max(
+    0,
+    Math.min(periods.length - 1, Math.floor((currentAge - startRounded) / 10)),
+  );
+  const currentPeriod = periods[currentIndex];
+
   return {
     type: "daewoon",
     title: "대운 리포트",
     subtitle: `${result.dayGan}${result.dayZhi}일 · ${forward ? "순행" : "역행"} 대운 8개`,
     headline: `${startRounded}세부터 10년마다, 내 인생의 큰 파도`,
     chips: [
-      { label: "대운 시작", value: `${startAge}세` },
-      { label: "현재", value: periods[0].ageTo >= new Date().getFullYear() - result.solar.year ? `${periods[0].gan}${periods[0].zhi}` : `${periods[0].gan}${periods[0].zhi}` },
+      { label: "대운 시작", value: `${startRounded}세` },
+      { label: "현재 대운", value: `${currentPeriod.gan}${currentPeriod.zhi}` },
       { label: "8개 대운", value: `${periods[0].ageFrom}~${periods[7].ageTo}세` },
     ],
     previewParagraphs: [
-      `대운은 ${startAge}세 즈음 ${periods[0].gan}${periods[0].zhi}(${periods[0].sipsin})로 시작해요.`,
+      `대운은 만 ${startAge}세 즈음 ${periods[0].gan}${periods[0].zhi}(${periods[0].sipsin})로 시작해요. 지금은 ${currentPeriod.ageFrom}~${currentPeriod.ageTo}세 ${currentPeriod.gan}${currentPeriod.zhi} 대운이에요.`,
       "10년 단위 8개 흐름과 각 시기의 과제는 1코인으로 열려요.",
     ],
     lockedTitles: sections.map((section) => section.heading),

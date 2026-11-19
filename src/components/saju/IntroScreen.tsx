@@ -83,6 +83,15 @@ export default function IntroScreen({ onStart }: IntroScreenProps) {
           </li>
         </ul>
 
+        <Link className="kid-wide-link" href="/#products" style={{ marginTop: 14 }}>
+          <span className="kid-wide-link__emoji" aria-hidden="true">🪙</span>
+          <span>
+            <b>심화 사주·신년운세·연애운 리포트</b>
+            <small>990원(1코인)부터 · 무료 미리보기 후 열기</small>
+          </span>
+          <span aria-hidden="true">→</span>
+        </Link>
+
         <Link className="hero__board" href="/board">
           <span aria-hidden="true">💞</span>
           <span>

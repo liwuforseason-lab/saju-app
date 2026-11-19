@@ -1992,6 +1992,10 @@ a.hero__board {
   --kid-shadow-sm: 0 8px 18px -12px rgba(84, 56, 22, .45);
 }
 
+html {
+  scroll-padding-bottom: 120px;
+}
+
 .app--kid,
 .app--with-tabs {
   background-color: var(--kid-bg);
