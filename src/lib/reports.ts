@@ -728,8 +728,7 @@ export function buildGunghapReport(
     {
       heading: "3. 부딪히는 지점",
       paragraphs: [
-        `${aName} 님과 ${bName} 님의 ${a.strength}·${b.strength} 조합은 ${a.strength === b.strength ? "힘의 방향이 비슷해 주도권 다툼이 생기면 오래 끌 수 있어요." : "에너지가 오가는 방식이 달라, 한쪽이 지칠 때 다른 쪽은 왜 힘든지 모를 수 있어요."} 갈등은 감정이 아니라 속도 차이에서 시작돼요.`,
-        `${a.strength}인 ${aName} 님과 ${b.strength}인 ${bName} 님은 ${a.strength === b.strength ? "비슷한 힘의 균형이라 주도권 다툼이 생기면 오래 끌 수 있어요." : "에너지의 방향이 달라, 한쪽이 지칠 때 다른 쪽은 왜 힘든지 모를 수 있어요."}`,
+        `${aName} 님은 ${a.strength}, ${bName} 님은 ${b.strength}이에요. ${a.strength === b.strength ? "힘의 방향이 비슷해, 주도권을 잡으려는 순간 갈등이 오래 끌 수 있어요." : "에너지가 오가는 방식이 달라, 한쪽이 지칠 때 다른 쪽은 왜 힘든지 모를 수 있어요."} 갈등은 감정이 아니라 속도 차이에서 시작돼요.`,
       ],
       bullets: [
         `${a.input.name || "나"} — ${a.ilgan.weak[0]}`,
